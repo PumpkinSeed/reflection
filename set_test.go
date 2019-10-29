@@ -130,7 +130,7 @@ func TestSet(t *testing.T) {
 	assert.Equal(t, 12, ts.NullIntPtrString.Int)
 	assert.Equal(t, "1234", ts.NullStringInt.String)
 	assert.Equal(t, "test", ts.NullStringPtrString.String)
-
+get rid of the huge
 	//res, _ := json.Marshal(ts)
 	//fmt.Println(string(res))
 }
