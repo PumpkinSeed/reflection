@@ -1,28 +1,27 @@
 package reflection
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/volatiletech/null"
 )
 
 type testStruct struct {
-	IntInt    int   `json:"int_int"`
-	IntInt8   int   `json:"int_int_8"`
-	IntInt16  int   `json:"int_int_16"`
-	IntInt32  int   `json:"int_int_32"`
-	IntInt64  int   `json:"int_int_64"`
-	Int8Int   int8  `json:"int_8_int"`
-	Int16Int  int16 `json:"int_16_int"`
-	Int32Int  int32 `json:"int_32_int"`
-	Int64Int  int64 `json:"int_64_int"`
-	IntString int   `json:"int_string"`
-	IntStringEmpty int `json:"int_string_empty"`
-	IntPtrInt *int `json:"int_ptr_int"`
+	IntInt         int   `json:"int_int"`
+	IntInt8        int   `json:"int_int_8"`
+	IntInt16       int   `json:"int_int_16"`
+	IntInt32       int   `json:"int_int_32"`
+	IntInt64       int   `json:"int_int_64"`
+	Int8Int        int8  `json:"int_8_int"`
+	Int16Int       int16 `json:"int_16_int"`
+	Int32Int       int32 `json:"int_32_int"`
+	Int64Int       int64 `json:"int_64_int"`
+	IntString      int   `json:"int_string"`
+	IntStringEmpty int   `json:"int_string_empty"`
+	IntPtrInt      *int  `json:"int_ptr_int"`
 
 	UintUint   uint   `json:"uint_uint"`
 	UintUint8  uint   `json:"uint_uint_8"`
@@ -53,15 +52,15 @@ type testStruct struct {
 	StringUint   string `json:"string_uint"`
 	StringBool   string `json:"string_bool"`
 	StringFloat  string `json:"string_float"`
-	
-	NullIntInt null.Int `json:"null_int_int"`
-	NullIntString null.Int `json:"null_int_string"`
-	NullIntPtrString *null.Int `json:"null_int_ptr_string"`
-	NullStringInt null.String `json:"null_string_int"`
+
+	NullIntInt          null.Int     `json:"null_int_int"`
+	NullIntString       null.Int     `json:"null_int_string"`
+	NullIntPtrString    *null.Int    `json:"null_int_ptr_string"`
+	NullStringInt       null.String  `json:"null_string_int"`
 	NullStringPtrString *null.String `json:"null_string_ptr_string"`
 }
 
-func TestOverall(t *testing.T) {
+func TestSet(t *testing.T) {
 	dataset := dataSet()
 
 	var ts = &testStruct{}
@@ -132,24 +131,24 @@ func TestOverall(t *testing.T) {
 	assert.Equal(t, "1234", ts.NullStringInt.String)
 	assert.Equal(t, "test", ts.NullStringPtrString.String)
 
-	res, _ := json.Marshal(ts)
-	fmt.Println(string(res))
+	//res, _ := json.Marshal(ts)
+	//fmt.Println(string(res))
 }
 
 func dataSet() map[string]interface{} {
 	return map[string]interface{}{
-		"int_int":    1000,
-		"int_int_8":  int8(20),
-		"int_int_16": int16(200),
-		"int_int_32": int32(2000),
-		"int_int_64": int64(20000),
-		"int_8_int":  10,
-		"int_16_int": 1000,
-		"int_32_int": 1000,
-		"int_64_int": 1000,
-		"int_string": "1000",
+		"int_int":          1000,
+		"int_int_8":        int8(20),
+		"int_int_16":       int16(200),
+		"int_int_32":       int32(2000),
+		"int_int_64":       int64(20000),
+		"int_8_int":        10,
+		"int_16_int":       1000,
+		"int_32_int":       1000,
+		"int_64_int":       1000,
+		"int_string":       "1000",
 		"int_string_empty": "",
-		"int_ptr_int": 123,
+		"int_ptr_int":      123,
 
 		"uint_uint":    uint(1000),
 		"uint_uint_8":  uint8(10),
@@ -176,15 +175,15 @@ func dataSet() map[string]interface{} {
 		"float_64_string":   "123.3",
 
 		"string_string": "test",
-		"string_int": 123,
-		"string_uint": uint(123),
-		"string_bool": true,
-		"string_float": 1234.2,
+		"string_int":    123,
+		"string_uint":   uint(123),
+		"string_bool":   true,
+		"string_float":  1234.2,
 
-		"null_int_int": 12,
-		"null_int_string": "12",
-		"null_int_ptr_string": "12",
-		"null_string_int": 1234,
+		"null_int_int":           12,
+		"null_int_string":        "12",
+		"null_int_ptr_string":    "12",
+		"null_string_int":        1234,
 		"null_string_ptr_string": "test",
 	}
 }
@@ -222,5 +221,30 @@ func Test_setStructField(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func BenchmarkSet(b *testing.B) {
+	dataset := dataSet()
+
+	var ts = &testStruct{}
+
+	for i := 0; i < b.N; i++ {
+		rv := reflect.Indirect(reflect.ValueOf(ts))
+		rt := rv.Type()
+
+		for i := 0; i < rt.NumField(); i++ {
+			rvField := rv.Field(i)
+			rtField := rt.Field(i)
+
+			if tag, ok := rtField.Tag.Lookup("json"); ok {
+				if data, ok := dataset[tag]; ok {
+					if err := Set(rvField, data); err != nil {
+						b.Error(err)
+					}
+				}
+
+			}
+		}
 	}
 }
