@@ -22,6 +22,7 @@ type testStruct struct {
 	Int64Int  int64 `json:"int_64_int"`
 	IntString int   `json:"int_string"`
 	IntStringEmpty int `json:"int_string_empty"`
+	IntPtrInt *int `json:"int_ptr_int"`
 
 	UintUint   uint   `json:"uint_uint"`
 	UintUint8  uint   `json:"uint_uint_8"`
@@ -54,6 +55,10 @@ type testStruct struct {
 	StringFloat  string `json:"string_float"`
 	
 	NullIntInt null.Int `json:"null_int_int"`
+	NullIntString null.Int `json:"null_int_string"`
+	NullIntPtrString *null.Int `json:"null_int_ptr_string"`
+	NullStringInt null.String `json:"null_string_int"`
+	NullStringPtrString *null.String `json:"null_string_ptr_string"`
 }
 
 func TestOverall(t *testing.T) {
@@ -89,6 +94,7 @@ func TestOverall(t *testing.T) {
 	assert.Equal(t, int64(1000), ts.Int64Int)
 	assert.Equal(t, 1000, ts.IntString)
 	assert.Equal(t, 0, ts.IntStringEmpty)
+	assert.Equal(t, 123, *ts.IntPtrInt)
 
 	assert.Equal(t, uint(1000), ts.UintUint)
 	assert.Equal(t, uint(10), ts.UintUint8)
@@ -121,6 +127,10 @@ func TestOverall(t *testing.T) {
 	assert.Equal(t, "1234.2", ts.StringFloat)
 
 	assert.Equal(t, 12, ts.NullIntInt.Int)
+	assert.Equal(t, 12, ts.NullIntString.Int)
+	assert.Equal(t, 12, ts.NullIntPtrString.Int)
+	assert.Equal(t, "1234", ts.NullStringInt.String)
+	assert.Equal(t, "test", ts.NullStringPtrString.String)
 
 	res, _ := json.Marshal(ts)
 	fmt.Println(string(res))
@@ -139,6 +149,7 @@ func dataSet() map[string]interface{} {
 		"int_64_int": 1000,
 		"int_string": "1000",
 		"int_string_empty": "",
+		"int_ptr_int": 123,
 
 		"uint_uint":    uint(1000),
 		"uint_uint_8":  uint8(10),
@@ -171,6 +182,10 @@ func dataSet() map[string]interface{} {
 		"string_float": 1234.2,
 
 		"null_int_int": 12,
+		"null_int_string": "12",
+		"null_int_ptr_string": "12",
+		"null_string_int": 1234,
+		"null_string_ptr_string": "test",
 	}
 }
 

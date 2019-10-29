@@ -11,42 +11,41 @@ type capableStruct interface {
 	UnmarshalText(text []byte) error
 }
 
-func Set(value reflect.Value, input interface{}) error {
-	typ := value.Type()
-
-	switch typ.Kind() {
+func Set(field reflect.Value, input interface{}) error {
+	switch field.Kind() {
 	case reflect.Int:
-		return setIntField(value, input, 0)
+		return setIntField(field, input, 0)
 	case reflect.Int8:
-		return setIntField(value, input, 8)
+		return setIntField(field, input, 8)
 	case reflect.Int16:
-		return setIntField(value, input, 16)
+		return setIntField(field, input, 16)
 	case reflect.Int32:
-		return setIntField(value, input, 32)
+		return setIntField(field, input, 32)
 	case reflect.Int64:
-		return setIntField(value, input, 64)
+		return setIntField(field, input, 64)
 	case reflect.Uint:
-		return setUintField(value, input, 0)
+		return setUintField(field, input, 0)
 	case reflect.Uint8:
-		return setUintField(value, input, 8)
+		return setUintField(field, input, 8)
 	case reflect.Uint16:
-		return setUintField(value, input, 16)
+		return setUintField(field, input, 16)
 	case reflect.Uint32:
-		return setUintField(value, input, 32)
+		return setUintField(field, input, 32)
 	case reflect.Uint64:
-		return setUintField(value, input, 64)
+		return setUintField(field, input, 64)
 	case reflect.Bool:
-		return setBoolField(value, input)
+		return setBoolField(field, input)
 	case reflect.Float32:
-		return setFloatField(value, input, 32)
+		return setFloatField(field, input, 32)
 	case reflect.Float64:
-		return setFloatField(value, input, 64)
+		return setFloatField(field, input, 64)
 	case reflect.String:
-		return setStringField(value, input)
+		return setStringField(field, input)
 	case reflect.Ptr:
-		return Set(reflect.Indirect(value), input)
+		field.Set(reflect.New(reflect.TypeOf(field.Interface()).Elem()))
+		return Set(reflect.Indirect(field), input)
 	case reflect.Struct:
-		return setStructField(value, input)
+		return setStructField(field, input)
 	default:
 
 	}
@@ -270,9 +269,19 @@ func setStructField(field reflect.Value, input interface{}) error {
 		return err
 	}
 
-	if casted, ok := field.Interface().(capableStruct); ok {
-		return casted.UnmarshalText([]byte(stringValue))
+	if field.Kind() == reflect.Ptr {
+		field = reflect.Indirect(field)
 	}
+
+	newField := reflect.New(field.Type())
+	if casted, ok := newField.Interface().(capableStruct); ok {
+		err := casted.UnmarshalText([]byte(stringValue))
+		if err != nil {
+			return err
+		}
+	}
+
+	field.Set(newField.Elem())
 
 	return nil
 }
